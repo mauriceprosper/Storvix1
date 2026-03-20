@@ -408,7 +408,7 @@
     listenOrders, updateOrderStatus, requestWithdrawal,
     uploadImage, storeUrl, fmt, toast, serverTimestamp
   } from './firebase-config.js';
-  import { doc, updateDoc, collection, addDoc, getDocs, deleteDoc }
+  import { doc, onSnapshot, updateDoc, collection, addDoc, getDocs, deleteDoc }
     from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
   let seller = null;
@@ -416,13 +416,33 @@
   let allProducts = [];
   let editingProductId = null;
   let newImageFiles = [];
-  let unsubOrders = null;
+  let unsubOrders  = null;
+  let unsubSeller  = null;
 
   onAuthStateChanged(auth, async user => {
     if (!user) { window.location.href = 'auth.html'; return; }
     seller = await getSeller(user.uid);
     if (!seller) { window.location.href = 'onboarding.html'; return; }
     initDashboard(seller);
+    // Real-time listener on seller doc so wallet updates instantly
+    if (unsubSeller) unsubSeller();
+    unsubSeller = onSnapshot(doc(db, 'sellers', user.uid), snap => {
+      if (!snap.exists()) return;
+      const data = snap.data();
+      seller = { id: snap.id, ...data };
+      const w = data.wallet || {};
+      document.getElementById('statBalance').textContent    = fmt(w.balance);
+      document.getElementById('walletBalance').textContent  = fmt(w.balance);
+      document.getElementById('totalEarned').textContent    = fmt(w.totalEarned);
+      document.getElementById('totalWithdrawn').textContent = fmt(w.totalWithdrawn);
+      // Flash wallet card green so seller notices new credit
+      const card = document.querySelector('.wallet-card');
+      if (card) {
+        card.style.transition = 'background 0.4s';
+        card.style.background = '#15803d';
+        setTimeout(() => { card.style.background = 'var(--blue)'; }, 1000);
+      }
+    });
   });
 
   function initDashboard(s) {

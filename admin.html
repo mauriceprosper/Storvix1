@@ -345,7 +345,7 @@
   import { getFunctions, httpsCallable }
     from "https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js";
 
-  const ADMIN_EMAIL = "mauriceprosper1@gmail.com"; // ← your email
+  const ADMIN_EMAIL = "Mauriceprosper1@gmail.com"; // ← your email
 
   const app = initializeApp({
     apiKey:"AIzaSyBFAI1Ga5SMJ9_fFPaWW-9HNFvwyhE8JSg",
@@ -425,9 +425,13 @@
 
   // ── Load Withdrawals ─────────────────────────────────────
   async function loadWithdrawals() {
-    const snap = await getDocs(
-      query(collection(db, "withdrawals"), orderBy("requestedAt", "desc"), limit(100))
-    );
+    let snap;
+    try {
+      snap = await getDocs(query(collection(db, "withdrawals"), orderBy("requestedAt", "desc"), limit(100)));
+    } catch(e) {
+      // Index may not exist yet - load without ordering
+      snap = await getDocs(collection(db, "withdrawals"));
+    }
     allWithdrawals = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     renderWithdrawals(allWithdrawals);
   }
@@ -482,16 +486,37 @@
     document.getElementById('pendingPayouts').textContent = pending.length;
     document.getElementById('pendingPayoutAmt').textContent = `₦${Number(pendAmt).toLocaleString('en-NG')} total`;
 
-    // Load some orders via collectionGroup for total count
+    // Load orders — collectionGroup requires a Firestore index.
+    // Falls back to per-seller loading if index not yet created.
     try {
-      const ordSnap = await getDocs(query(collectionGroup(db, "orders"), limit(200)));
-      allAdminOrders = ordSnap.docs.map(d => ({ id: d.id, sellerId: d.ref.parent.parent.id, ...d.data() }));
-      document.getElementById('totalOrders').textContent = ordSnap.size;
+      const ordSnap = await getDocs(
+        query(collectionGroup(db, "orders"), orderBy("createdAt", "desc"), limit(500))
+      );
+      allAdminOrders = ordSnap.docs.map(d => ({
+        id: d.id, sellerId: d.ref.parent.parent.id, ...d.data()
+      }));
+      document.getElementById('totalOrders').textContent = allAdminOrders.length;
       renderAllOrders(allAdminOrders);
       buildPlatformChart(allAdminOrders);
     } catch(e) {
-      document.getElementById('totalOrders').textContent = '—';
-      console.error("Orders load:", e.message);
+      console.warn("collectionGroup query failed (index may not exist yet):", e.message);
+      // Fallback: load orders per seller
+      try {
+        const allOrdsList = [];
+        for (const s of allSellers) {
+          const snap = await getDocs(
+            query(collection(db, "sellers", s.id, "orders"), orderBy("createdAt","desc"), limit(50))
+          );
+          snap.docs.forEach(d => allOrdsList.push({ id: d.id, sellerId: s.id, ...d.data() }));
+        }
+        allAdminOrders = allOrdsList;
+        document.getElementById('totalOrders').textContent = allOrdsList.length;
+        renderAllOrders(allAdminOrders);
+        buildPlatformChart(allAdminOrders);
+      } catch(e2) {
+        document.getElementById('totalOrders').textContent = '—';
+        console.error("Orders fallback failed:", e2.message);
+      }
     }
 
     // Top sellers
