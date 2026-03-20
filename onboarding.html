@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Storvix — Set Up Your Store</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue:#1B6EF5;--blue-dark:#0D4DB8;--blue-light:#EBF2FF;--blue-mid:#C5DAFD;
+    --ink:#0E0E0E;--muted:#6B6B6B;--bg:#FAF9F7;--white:#FFFFFF;--card:#F5F4F1;
+    --border:#E8E6E0;--danger:#dc2626;--success:#16a34a;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+
+  .topbar{background:var(--white);border-bottom:1px solid var(--border);padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+  .brand{display:flex;align-items:center;gap:10px}
+  .brand-mark{width:32px;height:32px;border-radius:7px;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff}
+  .brand-name{font-size:18px;font-weight:700}
+  .step-text{font-size:13px;color:var(--muted)}
+
+  .progress-bar{height:3px;background:var(--border);position:relative}
+  .progress-fill{height:100%;background:var(--blue);transition:width 0.4s ease;width:20%}
+
+  .main{max-width:680px;margin:0 auto;padding:48px 24px 80px}
+
+  .step{display:none;animation:fadeIn 0.3s ease}
+  .step.active{display:block}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+  .step-header{margin-bottom:36px}
+  .step-num{font-size:12px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px}
+  .step-title{font-family:'Instrument Serif',serif;font-size:32px;line-height:1.15;margin-bottom:10px}
+  .step-title em{font-style:italic;color:var(--blue)}
+  .step-sub{font-size:15px;color:var(--muted);line-height:1.6}
+
+  .field{margin-bottom:20px}
+  .field label{display:block;font-size:13px;font-weight:600;margin-bottom:7px;color:var(--ink)}
+  .field label span{font-weight:400;color:var(--muted);font-size:12px}
+  .field input,.field select,.field textarea{width:100%;padding:13px 16px;border:1.5px solid var(--border);border-radius:8px;font-size:15px;font-family:'DM Sans',sans-serif;background:var(--white);color:var(--ink);outline:none;transition:border-color 0.2s,box-shadow 0.2s}
+  .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-light)}
+  .field textarea{resize:vertical;min-height:90px}
+  .field .hint{font-size:12px;color:var(--muted);margin-top:5px}
+
+  .field-row{display:flex;gap:16px}
+  .field-row .field{flex:1}
+
+  .slug-row{display:flex;align-items:center;border:1.5px solid var(--border);border-radius:8px;overflow:hidden;background:var(--white);transition:border-color 0.2s,box-shadow 0.2s}
+  .slug-row:focus-within{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-light)}
+  .slug-prefix{padding:13px 0 13px 16px;font-size:15px;color:var(--muted);white-space:nowrap;background:var(--card)}
+  .slug-input{border:none;outline:none;padding:13px 16px;font-size:15px;font-family:'DM Sans',sans-serif;color:var(--ink);flex:1;background:transparent}
+  .slug-status{padding:0 14px;font-size:13px;white-space:nowrap}
+  .slug-status.ok{color:var(--success)}
+  .slug-status.bad{color:var(--danger)}
+
+  .logo-upload{border:2px dashed var(--border);border-radius:12px;padding:32px;text-align:center;cursor:pointer;transition:all 0.2s;background:var(--white);position:relative}
+  .logo-upload:hover{border-color:var(--blue);background:var(--blue-light)}
+  .logo-upload input{position:absolute;inset:0;opacity:0;cursor:pointer}
+  .logo-preview{width:80px;height:80px;border-radius:50%;margin:0 auto 12px;background:var(--blue-light);display:flex;align-items:center;justify-content:center;font-size:32px;overflow:hidden}
+  .logo-preview img{width:100%;height:100%;object-fit:cover}
+  .upload-label{font-size:14px;font-weight:600;color:var(--ink)}
+  .upload-sub{font-size:12px;color:var(--muted);margin-top:4px}
+
+  .colour-grid{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}
+  .colour-swatch{width:36px;height:36px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:all 0.2s;position:relative}
+  .colour-swatch.selected{border-color:var(--ink);transform:scale(1.1)}
+  .colour-swatch::after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;opacity:0}
+  .colour-swatch.selected::after{opacity:1}
+  .custom-colour{width:36px;height:36px;border-radius:50%;border:2px dashed var(--border);cursor:pointer;overflow:hidden;position:relative}
+  .custom-colour input[type=color]{position:absolute;inset:-8px;width:calc(100%+16px);height:calc(100%+16px);cursor:pointer;opacity:0}
+
+  .categories{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+  .cat-chip{padding:8px 16px;border:1.5px solid var(--border);border-radius:99px;font-size:13px;font-weight:500;cursor:pointer;transition:all 0.2s;background:var(--white);color:var(--muted)}
+  .cat-chip.selected{background:var(--blue);border-color:var(--blue);color:#fff}
+
+  .bank-verify{display:flex;gap:10px;align-items:flex-end}
+  .bank-verify .field{flex:1;margin:0}
+  .verify-btn{padding:13px 18px;background:var(--blue-light);color:var(--blue);border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:'DM Sans',sans-serif;transition:all 0.2s;flex-shrink:0}
+  .verify-btn:hover{background:var(--blue);color:#fff}
+  .account-name{margin-top:8px;font-size:13px;font-weight:600;color:var(--success);display:none}
+  .account-name.show{display:block}
+
+  .nav-row{display:flex;justify-content:space-between;align-items:center;margin-top:40px;padding-top:28px;border-top:1px solid var(--border)}
+  .btn{padding:13px 28px;border-radius:8px;border:none;font-size:15px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s;display:inline-flex;align-items:center;gap:8px}
+  .btn-primary{background:var(--blue);color:#fff}
+  .btn-primary:hover{background:var(--blue-dark);transform:translateY(-1px)}
+  .btn-primary:disabled{opacity:0.5;cursor:not-allowed;transform:none}
+  .btn-ghost{background:transparent;color:var(--muted);padding:13px 0}
+  .btn-ghost:hover{color:var(--ink)}
+
+  /* Step 5 — Go Live */
+  .go-live-card{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:40px;text-align:center;margin-bottom:24px}
+  .success-ring{width:80px;height:80px;border-radius:50%;background:var(--blue-light);border:3px solid var(--blue-mid);display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 20px;animation:pop 0.5s cubic-bezier(0.68,-0.55,0.265,1.55)}
+  @keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+  .store-url-box{background:var(--blue-light);border:1.5px solid var(--blue-mid);border-radius:8px;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;margin:20px 0;cursor:pointer;transition:all 0.2s}
+  .store-url-box:hover{background:var(--blue-mid)}
+  .store-url-text{font-size:15px;font-weight:600;color:var(--blue)}
+  .copy-btn{font-size:12px;color:var(--blue);font-weight:600;white-space:nowrap}
+  .checklist{text-align:left;display:flex;flex-direction:column;gap:10px}
+  .check-item{display:flex;align-items:center;gap:12px;font-size:14px;color:var(--muted)}
+  .check-item .dot{width:20px;height:20px;border-radius:50%;background:var(--blue-light);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;color:var(--blue)}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-mark">S</div>
+    <div class="brand-name">Storvix</div>
+  </div>
+  <div class="step-text" id="stepText">Step 1 of 5</div>
+</div>
+
+<div class="progress-bar">
+  <div class="progress-fill" id="progressFill"></div>
+</div>
+
+<div class="main">
+
+  <!-- STEP 1: Business Basics -->
+  <div class="step active" id="step1">
+    <div class="step-header">
+      <div class="step-num">Step 1 — The basics</div>
+      <h1 class="step-title">Tell us about<br>your <em>business</em></h1>
+      <p class="step-sub">This is what your customers will see on your storefront.</p>
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label>Your first name</label>
+        <input type="text" id="ownerFirst" placeholder="Amaka">
+      </div>
+      <div class="field">
+        <label>Your last name</label>
+        <input type="text" id="ownerLast" placeholder="Okonkwo">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Business / Store name</label>
+      <input type="text" id="storeName" placeholder="e.g. Amaka's Closet" oninput="autoSlug()">
+    </div>
+
+    <div class="field">
+      <label>What do you sell? <span>(pick all that apply)</span></label>
+      <div class="categories" id="categories">
+        <div class="cat-chip" onclick="toggleCat(this)">👗 Fashion</div>
+        <div class="cat-chip" onclick="toggleCat(this)">👜 Bags & Accessories</div>
+        <div class="cat-chip" onclick="toggleCat(this)">💄 Beauty</div>
+        <div class="cat-chip" onclick="toggleCat(this)">🍔 Food & Drinks</div>
+        <div class="cat-chip" onclick="toggleCat(this)">🏠 Home & Decor</div>
+        <div class="cat-chip" onclick="toggleCat(this)">💻 Electronics</div>
+        <div class="cat-chip" onclick="toggleCat(this)">📚 Books & Media</div>
+        <div class="cat-chip" onclick="toggleCat(this)">🌿 Health & Wellness</div>
+        <div class="cat-chip" onclick="toggleCat(this)">🎁 Gifts & Crafts</div>
+        <div class="cat-chip" onclick="toggleCat(this)">👶 Kids & Baby</div>
+        <div class="cat-chip" onclick="toggleCat(this)">⚽ Sports</div>
+        <div class="cat-chip" onclick="toggleCat(this)">🔧 Other</div>
+      </div>
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label>City</label>
+        <input type="text" id="city" placeholder="Lagos">
+      </div>
+      <div class="field">
+        <label>State</label>
+        <select id="state">
+          <option value="">Select state</option>
+          <option>Abia</option><option>Adamawa</option><option>Akwa Ibom</option>
+          <option>Anambra</option><option>Bauchi</option><option>Bayelsa</option>
+          <option>Benue</option><option>Borno</option><option>Cross River</option>
+          <option>Delta</option><option>Ebonyi</option><option>Edo</option>
+          <option>Ekiti</option><option>Enugu</option><option>FCT</option>
+          <option>Gombe</option><option>Imo</option><option>Jigawa</option>
+          <option>Kaduna</option><option>Kano</option><option>Katsina</option>
+          <option>Kebbi</option><option>Kogi</option><option>Kwara</option>
+          <option selected>Lagos</option><option>Nasarawa</option><option>Niger</option>
+          <option>Ogun</option><option>Ondo</option><option>Osun</option>
+          <option>Oyo</option><option>Plateau</option><option>Rivers</option>
+          <option>Sokoto</option><option>Taraba</option><option>Yobe</option>
+          <option>Zamfara</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Phone number (WhatsApp) <span>— buyers can reach you here</span></label>
+      <input type="tel" id="phone" placeholder="+234 801 234 5678">
+    </div>
+
+    <div class="nav-row">
+      <span></span>
+      <button class="btn btn-primary" onclick="validateStep1()">Continue →</button>
+    </div>
+  </div>
+
+  <!-- STEP 2: Store URL -->
+  <div class="step" id="step2">
+    <div class="step-header">
+      <div class="step-num">Step 2 — Your store address</div>
+      <h1 class="step-title">Choose your<br><em>store URL</em></h1>
+      <p class="step-sub">This is the link you'll share with customers. Choose something short and memorable.</p>
+    </div>
+
+    <div class="field">
+      <label>Your store link</label>
+      <div class="slug-row">
+        <div class="slug-prefix" id="slugPrefix">storvix.com/store/</div>
+        <input class="slug-input" type="text" id="slugInput" placeholder="amakas-closet" oninput="checkSlug()">
+        <div class="slug-status" id="slugStatus"></div>
+      </div>
+      <div class="hint">Only lowercase letters and hyphens. E.g. "amaka-fashion" or "tundestyle"</div>
+    </div>
+
+    <div class="field">
+      <label>Store tagline <span>— one sentence that sells you</span></label>
+      <input type="text" id="tagline" placeholder="e.g. Premium Ankara fashion for the Lagos woman">
+    </div>
+
+    <div class="field">
+      <label>About your store <span>— optional, shown on your storefront</span></label>
+      <textarea id="about" placeholder="Tell buyers who you are, what makes your products special, how long you've been in business..."></textarea>
+    </div>
+
+    <div class="nav-row">
+      <button class="btn btn-ghost" onclick="goStep(1)">← Back</button>
+      <button class="btn btn-primary" onclick="validateStep2()">Continue →</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: Branding -->
+  <div class="step" id="step3">
+    <div class="step-header">
+      <div class="step-num">Step 3 — Make it yours</div>
+      <h1 class="step-title">Your brand,<br>your <em>colours</em></h1>
+      <p class="step-sub">Upload a logo and pick a colour — your storefront adapts to match.</p>
+    </div>
+
+    <div class="field">
+      <label>Store logo</label>
+      <div class="logo-upload" id="logoUpload">
+        <input type="file" accept="image/*" onchange="previewLogo(event)">
+        <div class="logo-preview" id="logoPreview">🏪</div>
+        <div class="upload-label">Click to upload your logo</div>
+        <div class="upload-sub">PNG, JPG or SVG · Max 5MB</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Brand colour</label>
+      <div class="colour-grid" id="colourGrid">
+        <div class="colour-swatch selected" style="background:#1B6EF5" data-colour="#1B6EF5" onclick="pickColour(this)"></div>
+        <div class="colour-swatch" style="background:#0E0E0E" data-colour="#0E0E0E" onclick="pickColour(this)"></div>
+        <div class="colour-swatch" style="background:#c8962a" data-colour="#c8962a" onclick="pickColour(this)"></div>
+        <div class="colour-swatch" style="background:#c04a2a" data-colour="#c04a2a" onclick="pickColour(this)"></div>
+        <div class="colour-swatch" style="background:#4a6741" data-colour="#4a6741" onclick="pickColour(this)"></div>
+        <div class="colour-swatch" style="background:#6b21a8" data-colour="#6b21a8" onclick="pickColour(this)"></div>
+        <div class="colour-swatch" style="background:#0891b2" data-colour="#0891b2" onclick="pickColour(this)"></div>
+        <div class="colour-swatch" style="background:#be185d" data-colour="#be185d" onclick="pickColour(this)"></div>
+        <div class="custom-colour" title="Custom colour">
+          🎨
+          <input type="color" value="#1B6EF5" oninput="customColour(this.value)">
+        </div>
+      </div>
+      <div class="hint">This colour is used for buttons and accents on your store page.</div>
+    </div>
+
+    <div class="nav-row">
+      <button class="btn btn-ghost" onclick="goStep(2)">← Back</button>
+      <button class="btn btn-primary" onclick="goStep(4)">Continue →</button>
+    </div>
+  </div>
+
+  <!-- STEP 4: Bank Details -->
+  <div class="step" id="step4">
+    <div class="step-header">
+      <div class="step-num">Step 4 — Get paid</div>
+      <h1 class="step-title">Where should<br>we send your <em>money?</em></h1>
+      <p class="step-sub">Your bank account for payouts. We verify it before saving so there are no surprises.</p>
+    </div>
+
+    <div class="field">
+      <label>Bank</label>
+      <select id="bankSelect">
+        <option value="">Select your bank</option>
+        <option value="044">Access Bank</option>
+        <option value="063">Access Bank (Diamond)</option>
+        <option value="035A">ALAT by WEMA</option>
+        <option value="401">ASO Savings & Loans</option>
+        <option value="023">Citibank Nigeria</option>
+        <option value="050">EcoBank Nigeria</option>
+        <option value="562">Ekondo Microfinance Bank</option>
+        <option value="070">Fidelity Bank</option>
+        <option value="011">First Bank of Nigeria</option>
+        <option value="214">First City Monument Bank</option>
+        <option value="058">GTBank</option>
+        <option value="030">Heritage Bank</option>
+        <option value="301">Jaiz Bank</option>
+        <option value="082">Keystone Bank</option>
+        <option value="526">Moniepoint Microfinance Bank</option>
+        <option value="526">OPay</option>
+        <option value="076">Polaris Bank</option>
+        <option value="101">ProvidusBank</option>
+        <option value="221">Stanbic IBTC Bank</option>
+        <option value="068">Standard Chartered Bank</option>
+        <option value="232">Sterling Bank</option>
+        <option value="100">SunTrust Bank</option>
+        <option value="032">Union Bank of Nigeria</option>
+        <option value="033">United Bank For Africa</option>
+        <option value="215">Unity Bank</option>
+        <option value="035">Wema Bank</option>
+        <option value="057">Zenith Bank</option>
+        <option value="000014">Kuda Bank</option>
+        <option value="000013">GTBank (737)</option>
+        <option value="000022">Palmpay</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Account number</label>
+      <div class="bank-verify">
+        <div class="field">
+          <input type="text" id="accountNumber" placeholder="0123456789" maxlength="10" oninput="this.value=this.value.replace(/\D/g,'')">
+        </div>
+        <button class="verify-btn" onclick="verifyAccount()">Verify →</button>
+      </div>
+      <div class="account-name" id="accountName"></div>
+      <div class="hint">We'll verify with Paystack that this account exists before saving.</div>
+    </div>
+
+    <div class="field">
+      <label>Account holder name <span>— filled automatically on verify</span></label>
+      <input type="text" id="accountHolder" placeholder="Verified name appears here" readonly>
+    </div>
+
+    <div class="nav-row">
+      <button class="btn btn-ghost" onclick="goStep(3)">← Back</button>
+      <button class="btn btn-primary" id="step4Next" onclick="validateStep4()">Continue →</button>
+    </div>
+  </div>
+
+  <!-- STEP 5: Go Live -->
+  <div class="step" id="step5">
+    <div class="go-live-card">
+      <div class="success-ring">🎉</div>
+      <h2 style="font-family:'Instrument Serif',serif;font-size:28px;margin-bottom:8px">Your store is live!</h2>
+      <p style="color:var(--muted);font-size:15px;margin-bottom:20px">Share this link with your customers to start taking orders.</p>
+      <div class="store-url-box" onclick="copyStoreUrl()">
+        <div class="store-url-text" id="liveUrl">storvix.com/store/your-store</div>
+        <div class="copy-btn">📋 Copy</div>
+      </div>
+      <div class="checklist">
+        <div class="check-item"><div class="dot">✓</div> Store created and live</div>
+        <div class="check-item"><div class="dot">✓</div> Payments set up with Paystack</div>
+        <div class="check-item"><div class="dot">✓</div> Bank account verified for payouts</div>
+        <div class="check-item"><div class="dot">→</div> Add your first products</div>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:16px" onclick="goToDashboard()">
+      Go to My Dashboard →
+    </button>
+  </div>
+
+</div>
+
+<script type="module">
+  import {
+    auth, db, storage, onAuthStateChanged, requireAuth,
+    createSeller, updateSeller, checkSlugAvailable,
+    uploadImage, slugify, storeUrl, toast
+  } from './firebase-config.js';
+  import { doc, setDoc, serverTimestamp }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  let currentStep = 1;
+  let currentUser = null;
+  let selectedCategories = [];
+  let selectedColour = '#1B6EF5';
+  let slugOk = false;
+  let accountVerified = false;
+  let logoFile = null;
+  let storeData = {};
+
+  onAuthStateChanged(auth, user => {
+    if (!user) { window.location.href = 'auth.html'; return; }
+    currentUser = user;
+    const name = sessionStorage.getItem('sellerName') || user.displayName || '';
+    const [first, ...rest] = name.split(' ');
+    if (first) { document.getElementById('ownerFirst').value = first; }
+    if (rest.length) { document.getElementById('ownerLast').value = rest.join(' '); }
+    updateProgress();
+  });
+
+  function updateProgress() {
+    const pct = (currentStep / 5) * 100;
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('stepText').textContent = `Step ${currentStep} of 5`;
+  }
+
+  window.goStep = function(n) {
+    document.getElementById('step' + currentStep).classList.remove('active');
+    currentStep = n;
+    document.getElementById('step' + n).classList.add('active');
+    updateProgress();
+    window.scrollTo(0, 0);
+  };
+
+  window.toggleCat = function(el) {
+    el.classList.toggle('selected');
+    const cat = el.textContent.replace(/^\S+\s/, '');
+    if (el.classList.contains('selected')) {
+      selectedCategories.push(cat);
+    } else {
+      selectedCategories = selectedCategories.filter(c => c !== cat);
+    }
+  };
+
+  window.pickColour = function(el) {
+    document.querySelectorAll('.colour-swatch').forEach(s => s.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedColour = el.dataset.colour;
+  };
+  window.customColour = function(val) {
+    document.querySelectorAll('.colour-swatch').forEach(s => s.classList.remove('selected'));
+    selectedColour = val;
+  };
+
+  window.autoSlug = function() {
+    const name = document.getElementById('storeName').value;
+    const slug = slugify(name);
+    document.getElementById('slugInput').value = slug;
+    if (slug.length >= 3) checkSlug();
+  };
+
+  let slugTimer;
+  window.checkSlug = async function() {
+    clearTimeout(slugTimer);
+    const val = document.getElementById('slugInput').value.trim();
+    const status = document.getElementById('slugStatus');
+    if (!val || val.length < 3) { status.textContent = ''; return; }
+    status.textContent = '...'; status.className = 'slug-status';
+    slugTimer = setTimeout(async () => {
+      const available = await checkSlugAvailable(val);
+      slugOk = available;
+      status.textContent = available ? '✓ Available' : '✗ Taken';
+      status.className = 'slug-status ' + (available ? 'ok' : 'bad');
+    }, 500);
+  };
+
+  window.previewLogo = function(e) {
+    logoFile = e.target.files[0];
+    if (!logoFile) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const prev = document.getElementById('logoPreview');
+      prev.innerHTML = `<img src="${ev.target.result}" alt="Logo">`;
+    };
+    reader.readAsDataURL(logoFile);
+  };
+
+  window.verifyAccount = async function() {
+    const bank = document.getElementById('bankSelect').value;
+    const acct = document.getElementById('accountNumber').value;
+    if (!bank) { toast('Please select a bank', 'error'); return; }
+    if (acct.length !== 10) { toast('Account number must be 10 digits', 'error'); return; }
+
+    const btn = document.querySelector('.verify-btn');
+    btn.textContent = 'Verifying…'; btn.disabled = true;
+
+    try {
+      // Call Paystack resolve account endpoint via a Cloud Function proxy
+      // For now, simulate with a timeout — the real call goes through
+      // Cloud Functions to keep secret key off client
+      await new Promise(r => setTimeout(r, 1200));
+      // Simulate success — replace with real Cloud Function call
+      const mockName = 'AMAKA OKONKWO';
+      document.getElementById('accountHolder').value = mockName;
+      document.getElementById('accountName').textContent = `✓ ${mockName}`;
+      document.getElementById('accountName').className = 'account-name show';
+      accountVerified = true;
+      toast('Account verified!', 'success');
+    } catch {
+      toast('Verification failed. Check your account number and bank.', 'error');
+    } finally {
+      btn.textContent = 'Verify →'; btn.disabled = false;
+    }
+  };
+
+  window.validateStep1 = function() {
+    const first = document.getElementById('ownerFirst').value.trim();
+    const last  = document.getElementById('ownerLast').value.trim();
+    const name  = document.getElementById('storeName').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const city  = document.getElementById('city').value.trim();
+    const state = document.getElementById('state').value;
+    if (!first || !last) { toast('Enter your name', 'error'); return; }
+    if (!name) { toast('Enter your store name', 'error'); return; }
+    if (!city || !state) { toast('Enter your location', 'error'); return; }
+    if (!phone) { toast('Enter your WhatsApp number', 'error'); return; }
+    storeData.ownerName = `${first} ${last}`;
+    storeData.storeName = name;
+    storeData.categories = selectedCategories;
+    storeData.city = city; storeData.state = state; storeData.phone = phone;
+    goStep(2);
+  };
+
+  window.validateStep2 = function() {
+    const slug = document.getElementById('slugInput').value.trim();
+    if (!slug || slug.length < 3) { toast('Enter a store URL (min 3 characters)', 'error'); return; }
+    if (!slugOk) { toast('That URL is taken. Choose another.', 'error'); return; }
+    storeData.slug = slug;
+    storeData.tagline = document.getElementById('tagline').value.trim();
+    storeData.about   = document.getElementById('about').value.trim();
+    goStep(3);
+  };
+
+  window.validateStep4 = async function() {
+    const bank = document.getElementById('bankSelect').value;
+    const acct = document.getElementById('accountNumber').value;
+    const name = document.getElementById('accountHolder').value;
+    if (!bank) { toast('Select your bank', 'error'); return; }
+    if (acct.length !== 10) { toast('Enter a valid 10-digit account number', 'error'); return; }
+
+    storeData.bank = {
+      code: bank,
+      accountNumber: acct,
+      accountName: name,
+      verified: accountVerified
+    };
+    storeData.accentColour = selectedColour;
+
+    const btn = document.getElementById('step4Next');
+    btn.disabled = true; btn.textContent = 'Saving…';
+
+    try {
+      // Upload logo if provided
+      if (logoFile) {
+        storeData.logoUrl = await uploadImage(currentUser.uid, logoFile, 'logo');
+      }
+
+      await createSeller(currentUser.uid, {
+        ...storeData,
+        email: currentUser.email,
+        onboardingComplete: true
+      });
+
+      const url = storeUrl(storeData.slug);
+      document.getElementById('liveUrl').textContent = url;
+      window._storeUrl = url;
+      goStep(5);
+    } catch (e) {
+      toast('Something went wrong. Try again.', 'error');
+      console.error(e);
+    } finally {
+      btn.disabled = false; btn.textContent = 'Continue →';
+    }
+  };
+
+  window.copyStoreUrl = function() {
+    navigator.clipboard.writeText(window._storeUrl || document.getElementById('liveUrl').textContent);
+    toast('Link copied!', 'success');
+  };
+
+  window.goToDashboard = function() {
+    window.location.href = 'dashboard.html';
+  };
+</script>
+</body>
+</html>

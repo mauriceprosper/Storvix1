@@ -1,0 +1,48 @@
+// ─────────────────────────────────────────────────────
+//  STORVIX — Firestore Security Rules
+//  Paste this in Firebase Console > Firestore > Rules
+// ─────────────────────────────────────────────────────
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Sellers ──────────────────────────────────────────
+    // A seller can read/write their own document only
+    match /sellers/{sellerId} {
+      allow read: if true; // Public — storefront needs to read seller data
+      allow create: if request.auth != null && request.auth.uid == sellerId;
+      allow update: if request.auth != null && request.auth.uid == sellerId;
+      allow delete: if false; // Never delete via client
+
+      // ── Products ────────────────────────────────────────
+      // Anyone can read (buyer browsing store)
+      // Only the seller can write
+      match /products/{productId} {
+        allow read: if true;
+        allow write: if request.auth != null && request.auth.uid == sellerId;
+      }
+
+      // ── Orders ──────────────────────────────────────────
+      // Anyone can create (buyer placing order)
+      // Only the seller can read and update
+      match /orders/{orderId} {
+        allow create: if true; // Buyer checkout
+        allow read:   if request.auth != null && request.auth.uid == sellerId;
+        allow update: if request.auth != null && request.auth.uid == sellerId;
+        allow delete: if false;
+      }
+    }
+
+    // ── Withdrawals ──────────────────────────────────────
+    // Seller creates their own withdrawal requests
+    match /withdrawals/{wId} {
+      allow create: if request.auth != null
+        && request.resource.data.sellerId == request.auth.uid;
+      allow read: if request.auth != null
+        && resource.data.sellerId == request.auth.uid;
+      allow update: if false; // Only Cloud Functions update status
+      allow delete: if false;
+    }
+  }
+}
