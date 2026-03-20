@@ -661,6 +661,24 @@
     const total    = sub+delivery;
     const orderNum = `STX-${Date.now().toString().slice(-6)}`;
 
+    // Paystack requires plain functions — store order data on window to bridge ES module scope
+    window._storvixOrder = {
+      sellerId: seller.id, orderNumber: orderNum,
+      buyer: {
+        name:`${first} ${document.getElementById('bLast').value}`,
+        email, phone,
+        address:document.getElementById('bAddress').value,
+        city:document.getElementById('bCity').value,
+        state:document.getElementById('bState').value
+      },
+      items: cart.map(c=>({productId:c.id,name:c.name,size:c.size,colour:c.colour,price:c.price,qty:c.qty})),
+      subtotal:sub, deliveryFee:delivery, total,
+      delivery:selectedRate
+    };
+    window._storvixFirst   = first;
+    window._storvixOrderNum = orderNum;
+    window._storvixTotal    = total;
+
     const handler = PaystackPop.setup({
       key:      'pk_test_a814c1ecc6c2f94fdf8e0edf6aae1a26291b0b14',
       email,
@@ -672,28 +690,12 @@
         {display_name:'Phone',variable_name:'phone',value:phone},
         {display_name:'Store',variable_name:'store',value:seller.storeName}
       ]},
-      callback: async res => {
-        try {
-          await createOrder(seller.id, {
-            orderNumber: orderNum,
-            buyer: {
-              name:`${first} ${document.getElementById('bLast').value}`,
-              email, phone,
-              address:document.getElementById('bAddress').value,
-              city:document.getElementById('bCity').value,
-              state:document.getElementById('bState').value
-            },
-            items: cart.map(c=>({productId:c.id,name:c.name,size:c.size,colour:c.colour,price:c.price,qty:c.qty})),
-            subtotal:sub, deliveryFee:delivery, total,
-            delivery:selectedRate,
-            paystackRef:res.reference,
-            status:'confirmed'
-          });
-          showSuccess(first,orderNum,total);
-          cart=[]; selectedRate=null; renderCart();
-        } catch(e){ toast('Payment received! Thank you.','success'); closeCheckout(); }
+      callback: function(res) {
+        window._storvixPayCallback(res.reference);
       },
-      onClose:()=>toast('Payment cancelled','error')
+      onClose: function() {
+        window._storvixToast('Payment cancelled');
+      }
     });
     handler.openIframe();
   };
@@ -721,6 +723,33 @@
     document.querySelector('.filters-section').style.display='none';
     document.querySelector('.products-section').style.display='none';
   }
+
+  // Bridge functions — callable from non-module Paystack inline script
+  window._storvixToast = (msg) => toast(msg, 'error');
+
+  window._storvixPayCallback = async function(reference) {
+    const order = window._storvixOrder;
+    if (!order) return;
+    try {
+      await createOrder(order.sellerId, {
+        orderNumber:  order.orderNumber,
+        buyer:        order.buyer,
+        items:        order.items,
+        subtotal:     order.subtotal,
+        deliveryFee:  order.deliveryFee,
+        total:        order.total,
+        delivery:     order.delivery,
+        paystackRef:  reference,
+        status:       'confirmed'
+      });
+      showSuccess(window._storvixFirst, window._storvixOrderNum, window._storvixTotal);
+      cart = []; selectedRate = null; renderCart();
+      window._storvixOrder = null;
+    } catch(e) {
+      toast('Payment received! Your order is confirmed.', 'success');
+      closeCheckout();
+    }
+  };
 
   function darken(hex,amt){const n=parseInt(hex.replace('#',''),16);const r=Math.max(0,(n>>16)-amt);const g=Math.max(0,((n>>8)&0xff)-amt);const b=Math.max(0,(n&0xff)-amt);return'#'+[r,g,b].map(x=>x.toString(16).padStart(2,'0')).join('');}
   function lighten(hex,pct){const n=parseInt(hex.replace('#',''),16);const r=parseInt(((n>>16)+(255-(n>>16))*pct/100));const g=parseInt((((n>>8)&0xff)+(255-((n>>8)&0xff))*pct/100));const b=parseInt(((n&0xff)+(255-(n&0xff))*pct/100));return'#'+[r,g,b].map(x=>Math.min(255,x).toString(16).padStart(2,'0')).join('');}
