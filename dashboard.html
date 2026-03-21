@@ -402,67 +402,7 @@
       </div>
     </div>
 
-  </div>
-</div>
-
-<!-- ADD PRODUCT MODAL -->
-<div class="modal-overlay" id="productModal">
-  <div class="modal">
-    <div class="modal-head">
-      <h3 id="modalTitle">Add Product</h3>
-      <button class="btn btn-ghost btn-sm" onclick="closeProductModal()">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="field"><label>Product name</label><input type="text" id="pName" placeholder="e.g. Ankara Wrap Dress"></div>
-      <div class="field-row">
-        <div class="field"><label>Price (₦)</label><input type="number" id="pPrice" placeholder="35000"></div>
-        <div class="field"><label>Old price (₦) <span style="font-weight:400;color:var(--muted);font-size:12px">optional</span></label><input type="number" id="pOldPrice" placeholder="45000"></div>
-      </div>
-      <div class="field-row">
-        <div class="field"><label>Stock quantity</label><input type="number" id="pStock" placeholder="10"></div>
-        <div class="field"><label>Category</label><select id="pCategory">
-          <option>Fashion</option><option>Bags & Accessories</option><option>Beauty</option>
-          <option>Food & Drinks</option><option>Home & Decor</option><option>Electronics</option>
-          <option>Other</option>
-        </select></div>
-      </div>
-      <div class="field"><label>Description</label><textarea id="pDesc" placeholder="Describe your product — material, size info, care instructions..."></textarea></div>
-      <div class="field">
-        <label>Sizes <span style="font-weight:400;color:var(--muted);font-size:12px">click to select</span></label>
-        <div class="variant-chips">
-          <div class="variant-chip" onclick="this.classList.toggle('on')">XS</div>
-          <div class="variant-chip" onclick="this.classList.toggle('on')">S</div>
-          <div class="variant-chip" onclick="this.classList.toggle('on')">M</div>
-          <div class="variant-chip" onclick="this.classList.toggle('on')">L</div>
-          <div class="variant-chip" onclick="this.classList.toggle('on')">XL</div>
-          <div class="variant-chip" onclick="this.classList.toggle('on')">2XL</div>
-          <div class="variant-chip" onclick="this.classList.toggle('on')">3XL</div>
-          <div class="variant-chip" onclick="this.classList.toggle('on')">One Size</div>
-        </div>
-      </div>
-      <div class="field">
-        <label>Colours <span style="font-weight:400;color:var(--muted);font-size:12px">enter hex codes separated by commas</span></label>
-        <input type="text" id="pColours" placeholder="#000000, #ffffff, #c8962a">
-      </div>
-      <div class="field">
-        <label>Product images</label>
-        <div class="img-upload" id="imgUploadZone">
-          <input type="file" accept="image/*" multiple onchange="previewImages(event)">
-          📷 Click to upload images (max 5)
-        </div>
-        <div class="img-previews" id="imgPreviews"></div>
-      </div>
-    </div>
-    <div class="modal-foot">
-      <button class="btn btn-ghost" onclick="closeProductModal()">Cancel</button>
-      <button class="btn btn-primary" id="saveProductBtn" onclick="saveProduct()">Save Product</button>
-    </div>
-  </div>
-</div>
-
-
-</div>
-<!-- ── ANALYTICS TAB HTML ─────────────────────────────── -->
+    <!-- ── ANALYTICS TAB HTML ─────────────────────────────── -->
 <div class="tab-content" id="tab-analytics">
 
   <!-- Period selector -->
@@ -534,6 +474,67 @@
       <div id="activityFeed" style="display:flex;flex-direction:column;gap:8px;margin-top:4px"></div>
     </div>
   </div>
+
+  </div>
+</div>
+
+<!-- ADD PRODUCT MODAL -->
+<div class="modal-overlay" id="productModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modalTitle">Add Product</h3>
+      <button class="btn btn-ghost btn-sm" onclick="closeProductModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field"><label>Product name</label><input type="text" id="pName" placeholder="e.g. Ankara Wrap Dress"></div>
+      <div class="field-row">
+        <div class="field"><label>Price (₦)</label><input type="number" id="pPrice" placeholder="35000"></div>
+        <div class="field"><label>Old price (₦) <span style="font-weight:400;color:var(--muted);font-size:12px">optional</span></label><input type="number" id="pOldPrice" placeholder="45000"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Stock quantity</label><input type="number" id="pStock" placeholder="10"></div>
+        <div class="field"><label>Category</label><select id="pCategory">
+          <option>Fashion</option><option>Bags & Accessories</option><option>Beauty</option>
+          <option>Food & Drinks</option><option>Home & Decor</option><option>Electronics</option>
+          <option>Other</option>
+        </select></div>
+      </div>
+      <div class="field"><label>Description</label><textarea id="pDesc" placeholder="Describe your product — material, size info, care instructions..."></textarea></div>
+      <div class="field">
+        <label>Sizes <span style="font-weight:400;color:var(--muted);font-size:12px">click to select</span></label>
+        <div class="variant-chips">
+          <div class="variant-chip" onclick="this.classList.toggle('on')">XS</div>
+          <div class="variant-chip" onclick="this.classList.toggle('on')">S</div>
+          <div class="variant-chip" onclick="this.classList.toggle('on')">M</div>
+          <div class="variant-chip" onclick="this.classList.toggle('on')">L</div>
+          <div class="variant-chip" onclick="this.classList.toggle('on')">XL</div>
+          <div class="variant-chip" onclick="this.classList.toggle('on')">2XL</div>
+          <div class="variant-chip" onclick="this.classList.toggle('on')">3XL</div>
+          <div class="variant-chip" onclick="this.classList.toggle('on')">One Size</div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Colours <span style="font-weight:400;color:var(--muted);font-size:12px">enter hex codes separated by commas</span></label>
+        <input type="text" id="pColours" placeholder="#000000, #ffffff, #c8962a">
+      </div>
+      <div class="field">
+        <label>Product images</label>
+        <div class="img-upload" id="imgUploadZone">
+          <input type="file" accept="image/*" multiple onchange="previewImages(event)">
+          📷 Click to upload images (max 5)
+        </div>
+        <div class="img-previews" id="imgPreviews"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeProductModal()">Cancel</button>
+      <button class="btn btn-primary" id="saveProductBtn" onclick="saveProduct()">Save Product</button>
+    </div>
+  </div>
+</div>
+
+
+</div>
 
 <script type="module">
   import {
