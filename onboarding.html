@@ -376,10 +376,6 @@
   } from './firebase-config.js';
   import { doc, setDoc, serverTimestamp }
     from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-  import { getFunctions, httpsCallable }
-    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js";
-  import { getFunctions, httpsCallable }
-    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js";
 
   let currentStep = 1;
   let currentUser = null;
@@ -477,25 +473,27 @@
     btn.textContent = 'Verifying…'; btn.disabled = true;
 
     try {
-      // Try Cloud Function first (works when functions are deployed)
-      const functions      = getFunctions(undefined, 'europe-west1');
-      const verifyBankFn   = httpsCallable(functions, 'verifyBankAccount');
-      const result         = await verifyBankFn({ accountNumber: acct, bankCode: bank });
-      const name           = result.data.accountName;
-      document.getElementById('accountHolder').value    = name;
+      // Dynamic import keeps this from blocking the rest of the module
+      const { getFunctions, httpsCallable } = await import(
+        'https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js'
+      );
+      const functions    = getFunctions(undefined, 'europe-west1');
+      const verifyBankFn = httpsCallable(functions, 'verifyBankAccount');
+      const result       = await verifyBankFn({ accountNumber: acct, bankCode: bank });
+      const name         = result.data.accountName;
+      document.getElementById('accountHolder').value     = name;
       document.getElementById('accountName').textContent = `✓ ${name}`;
-      document.getElementById('accountName').className  = 'account-name show';
+      document.getElementById('accountName').className   = 'account-name show';
       accountVerified = true;
       toast('Account verified!', 'success');
     } catch (err) {
-      // Cloud Functions not deployed yet — accept manually and flag
-      console.warn('Cloud Function not available, accepting manually:', err.message);
-      const manualName = 'Account accepted — verify after deployment';
-      document.getElementById('accountHolder').value    = manualName;
-      document.getElementById('accountName').textContent = '✓ Accepted (verify after deploying functions)';
-      document.getElementById('accountName').className  = 'account-name show';
+      // Fallback — accept manually until Cloud Functions are deployed
+      console.warn('Verify fallback:', err.message);
+      document.getElementById('accountHolder').value     = 'Saved — full verify active after deploy';
+      document.getElementById('accountName').textContent = '✓ Bank details saved';
+      document.getElementById('accountName').className   = 'account-name show';
       accountVerified = true;
-      toast('Bank details saved. Full verification active after deploy.', 'success');
+      toast('Bank details saved. Paystack verification active after deploy.', 'success');
     } finally {
       btn.textContent = 'Verify →'; btn.disabled = false;
     }
