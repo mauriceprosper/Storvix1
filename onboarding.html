@@ -386,6 +386,9 @@
   let logoFile = null;
   let storeData = {};
 
+  import { getFunctions, httpsCallable }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js";
+
   onAuthStateChanged(auth, user => {
     if (!user) { window.location.href = 'auth.html'; return; }
     currentUser = user;
@@ -463,29 +466,30 @@
     reader.readAsDataURL(logoFile);
   };
 
+  // Then replace window.verifyAccount with:
   window.verifyAccount = async function() {
-    const bank = document.getElementById('bankSelect').value;
-    const acct = document.getElementById('accountNumber').value;
-    if (!bank) { toast('Please select a bank', 'error'); return; }
+    const bankCode = document.getElementById('bankSelect').value;
+    const acct     = document.getElementById('accountNumber').value;
+    if (!bankCode) { toast('Please select a bank', 'error'); return; }
     if (acct.length !== 10) { toast('Account number must be 10 digits', 'error'); return; }
 
     const btn = document.querySelector('.verify-btn');
     btn.textContent = 'Verifying…'; btn.disabled = true;
 
     try {
-      // Call Paystack resolve account endpoint via a Cloud Function proxy
-      // For now, simulate with a timeout — the real call goes through
-      // Cloud Functions to keep secret key off client
-      await new Promise(r => setTimeout(r, 1200));
-      // Simulate success — replace with real Cloud Function call
-      const mockName = 'AMAKA OKONKWO';
-      document.getElementById('accountHolder').value = mockName;
-      document.getElementById('accountName').textContent = `✓ ${mockName}`;
+      const app = initializeApp(firebaseConfig, 'onboard-verify');
+      const functions = getFunctions(app, 'europe-west1');
+      const verifyFn = httpsCallable(functions, 'verifyBankAccount');
+      const result = await verifyFn({ accountNumber: acct, bankCode });
+
+      const name = result.data.accountName;
+      document.getElementById('accountHolder').value = name;
+      document.getElementById('accountName').textContent = `✓ ${name}`;
       document.getElementById('accountName').className = 'account-name show';
       accountVerified = true;
       toast('Account verified!', 'success');
-    } catch {
-      toast('Verification failed. Check your account number and bank.', 'error');
+    } catch (err) {
+      toast(err.message || 'Verification failed. Check your account details.', 'error');
     } finally {
       btn.textContent = 'Verify →'; btn.disabled = false;
     }
